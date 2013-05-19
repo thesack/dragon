@@ -55,6 +55,8 @@ private var lockCameraTimer = 0.0;
 
 // The current move direction in x-z
 private var moveDirection = Vector3.zero;
+// The current strafe direction in x-z
+private var strafeDirection = Vector3.zero;
 // The current vertical speed
 private var verticalSpeed = 0.0;
 // The current x-z move speed
@@ -93,6 +95,7 @@ private var isControllable = true;
 function Awake ()
 {
 	moveDirection = transform.TransformDirection(Vector3.forward);
+	strafeDirection = transform.TransformDirection(Vector3.right);
 	
 	_animation = GetComponent(Animation);
 	if(!_animation)
@@ -179,6 +182,11 @@ function UpdateSmoothedMovementDirection ()
 				moveDirection = moveDirection.normalized;
 			}
 		}
+		
+		
+		// Add strafing to the moveDirection vector
+		var strafeInput = Input.GetAxisRaw("Strafe");
+		strafeDirection = right * strafeInput;
 		
 		// Smooth the speed based on the current target direction
 		var curSmooth = speedSmoothing * Time.deltaTime;
@@ -311,6 +319,7 @@ function Update() {
 	
 	// Calculate actual motion
 	var movement = moveDirection * moveSpeed + Vector3 (0, verticalSpeed, 0) + inAirVelocity;
+	movement += strafeDirection;
 	movement *= Time.deltaTime;
 	
 	// Move the controller
@@ -365,7 +374,7 @@ function Update() {
 	}	
 	else
 	{
-		var xzMove = movement;
+		var xzMove = movement - (strafeDirection * Time.deltaTime);
 		xzMove.y = 0;
 		if (xzMove.sqrMagnitude > 0.001)
 		{
